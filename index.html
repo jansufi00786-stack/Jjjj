@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>FTX Portal — USDT (TRC-20) Deposit</title>
+  <style>
+    body{font-family:system-ui,-apple-system,Segoe UI,Roboto,'Helvetica Neue',Arial;margin:0;background:#0f1115;color:#00ff9f;display:flex;align-items:center;justify-content:center;height:100vh}
+    .card{background:#121318;padding:28px;border-radius:12px;box-shadow:0 8px 30px rgba(0,255,159,0.2);max-width:420px;width:100%;text-align:center}
+    h1{font-size:22px;margin:0 0 8px;color:#00ff9f}
+    p.sub{color:#a0f0c0;margin:0 0 16px}
+    .addr{word-break:break-all;background:#1b1d25;padding:12px;border-radius:8px;margin:12px 0;font-family:monospace;color:#00ff9f}
+    .controls{display:flex;gap:8px;justify-content:center;margin-top:10px}
+    button{padding:8px 12px;border-radius:8px;border:0;cursor:pointer}
+    .btn-primary{background:#00ff9f;color:#0f1115;font-weight:bold}
+    .btn-ghost{background:transparent;border:1px solid #00ff9f;color:#00ff9f}
+    img.qr{width:160px;height:160px;margin:10px 0}
+    select{padding:8px;border-radius:8px;border:1px solid #00ff9f;background:#121318;color:#00ff9f}
+    small{color:#66ffb3}
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>FTX Portal</h1>
+    <p class="sub">Deposit USDT (TRC-20) to your wallet. Copy address or scan QR code below.</p>
+
+    <label style="display:none;">
+      Currency / Network:
+      <select id="currency" disabled>
+        <option value="USDT-TRC20" selected>USDT (TRC-20)</option>
+      </select>
+    </label>
+
+    <div id="addrContainer" class="addr" role="textbox" aria-label="deposit address">TC5gdcJ7u9o1jXrnpLZAfSioXGp1HrUFsN</div>
+
+    <img id="qr" class="qr" alt="QR code for deposit address">
+
+    <div class="controls">
+      <button class="btn-primary" id="copyBtn">Copy Address</button>
+      <button class="btn-ghost" id="downloadQr">Download QR</button>
+      <button class="btn-ghost" id="changeBtn">Edit Address</button>
+    </div>
+
+    <p style="margin-top:12px"><small>Ensure the sender uses TRC-20 network. This page is static and does not hold funds.</small></p>
+  </div>
+
+  <script>
+    let walletAddress = 'TC5gdcJ7u9o1jXrnpLZAfSioXGp1HrUFsN';
+    const addrDiv = document.getElementById('addrContainer');
+    const qrImg = document.getElementById('qr');
+    const currencySel = document.getElementById('currency');
+
+    function updateDisplay(){
+      addrDiv.textContent = walletAddress;
+      const uri = 'usdt:' + walletAddress + '?network=TRC20';
+      const qrUrl = 'https://chart.googleapis.com/chart?cht=qr&chs=300x300&chl=' + encodeURIComponent(uri);
+      qrImg.src = qrUrl;
+      qrImg.alt = 'QR code for ' + uri;
+    }
+
+    document.getElementById('copyBtn').addEventListener('click', async ()=>{
+      try{
+        await navigator.clipboard.writeText(walletAddress);
+        alert('Address copied to clipboard');
+      }catch(e){
+        const range = document.createRange();
+        range.selectNode(addrDiv);
+        window.getSelection().removeAllRanges();
+        window.getSelection().addRange(range);
+        try{ document.execCommand('copy'); alert('Address copied to clipboard'); }
+        catch(_){ alert('Could not copy — select and copy manually.'); }
+        window.getSelection().removeAllRanges();
+      }
+    });
+
+    document.getElementById('downloadQr').addEventListener('click', ()=>{
+      const link = document.createElement('a');
+      link.href = qrImg.src;
+      link.download = 'USDT-TRC20-deposit-qr.png';
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+    });
+
+    document.getElementById('changeBtn').addEventListener('click', ()=>{
+      const v = prompt('Enter the public deposit address (no keys):', walletAddress || '');
+      if(v !== null){ walletAddress = v.trim(); updateDisplay(); }
+    });
+
+    updateDisplay();
+  </script>
+</body>
+</html>
